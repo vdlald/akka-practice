@@ -5,6 +5,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import lombok.RequiredArgsConstructor;
 
 public class HelloWorld extends AbstractBehavior<HelloWorld.Command> {
 
@@ -15,12 +16,9 @@ public class HelloWorld extends AbstractBehavior<HelloWorld.Command> {
         INSTANCE
     }
 
+    @RequiredArgsConstructor
     public static class ChangeMessage implements Command {
         public final String newMessage;
-
-        public ChangeMessage(String newMessage) {
-            this.newMessage = newMessage;
-        }
     }
 
     public static Behavior<Command> create() {
