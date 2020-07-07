@@ -7,18 +7,23 @@ import com.google.inject.Injector;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
-public class App implements Runnable {
+public class App {
 
     private final ActorSystem<HelloWorld.Command> helloWorldSystem;
 
     public static void main(String[] args) {
         Injector injector = Guice.createInjector(new RootModule());
         App app = injector.getInstance(App.class);
-        app.run();
+
+        try {
+            app.run();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    @Override
-    public void run() {
+    public void run() throws Exception {
+        System.out.println(new String(App.class.getResourceAsStream("/logo").readAllBytes()));
         helloWorldSystem.tell(HelloWorld.SayHello.INSTANCE);
         helloWorldSystem.tell(HelloWorld.SayHello.INSTANCE);
         helloWorldSystem.tell(new HelloWorld.ChangeMessage("Hello Actor World!!!"));
