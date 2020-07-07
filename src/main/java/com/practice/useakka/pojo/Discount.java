@@ -8,6 +8,10 @@ public class Discount {
     long value;
     Type type;
 
+    public boolean isTypeEquals(Type type) {
+        return this.type.equals(type);
+    }
+
     @AllArgsConstructor
     public enum Type {
         PERCENT("%"),

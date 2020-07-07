@@ -49,7 +49,7 @@ public class Order {
             final long cost = dishesCost + additionalCost;
 
             final PartitionMutableList<Discount> partition = discounts
-                    .partition(discount -> discount.getType().equals(Discount.Type.VALUE));
+                    .partitionWith(Discount::isTypeEquals, Discount.Type.VALUE);
 
             final long reduceDiscount1 = partition.getSelected()
                     .collectLong(Discount::getValue)
