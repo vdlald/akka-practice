@@ -7,9 +7,9 @@ import lombok.Value;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.partition.list.PartitionMutableList;
 
-import java.util.Collection;
-import java.util.stream.LongStream;
+import java.util.Optional;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -43,21 +43,25 @@ public class Order {
         }
 
         public Order build() {
-            long cost = LongStream.concat(
-                    dishes.stream()
-                            .mapToLong(dishDto -> dishDto.getDish().getCost()),
-                    dishes.stream()
-                            .map(DishDto::getAdditional)
-                            .flatMap(Collection::stream)
-                            .mapToLong(Additional::getCost)
-            ).reduce(0L, Long::sum);
+            final long dishesCost = dishes.collectLong(dishDto -> dishDto.getDish().getCost())
+                    .reduceIfEmpty(Long::sum, 0L);
+            final long additionalCost = dishes.flatCollect(DishDto::getAdditional)
+                    .collectLong(Additional::getCost)
+                    .reduceIfEmpty(Long::sum, 0L);
+            final long cost = dishesCost + additionalCost;
 
-            long discount = 0L;
-            for (Discount discountObject : discounts)
-                if (discountObject.getType().equals(Discount.Type.VALUE))
-                    discount += discountObject.getValue();
-                else if (discountObject.getType().equals(Discount.Type.PERCENT))
-                    discount += (double) cost * ((double) discountObject.getValue() / 100L);
+            final PartitionMutableList<Discount> partition = discounts
+                    .partition(discount -> discount.getType().equals(Discount.Type.VALUE));
+
+            final long reduceDiscount1 = partition.getSelected()
+                    .collectLong(Discount::getValue)
+                    .reduceIfEmpty(Long::sum, 0L);
+
+            final long reduceDiscount2 = partition.getRejected()
+                    .collectLong(discount -> (long) ((double) cost * ((double) discount.getValue() / 100L)))
+                    .reduceIfEmpty(Long::sum, 0L);
+
+            final long discount = reduceDiscount1 + reduceDiscount2;
 
             return new Order(cost - discount, dishes.toImmutable(), discounts.toImmutable());
         }
