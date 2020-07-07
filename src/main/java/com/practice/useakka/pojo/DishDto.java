@@ -5,9 +5,8 @@ import com.practice.useakka.models.Dish;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.Arrays;
-import java.util.List;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.MutableList;
 
 @Data
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -15,14 +14,14 @@ public class DishDto {
 
     private Dish dish;
 
-    private List<Additional> additional;
+    private MutableList<Additional> additional;
 
-    public static DishDto of(Dish dish, List<Additional> additional) {
+    public static DishDto of(Dish dish, MutableList<Additional> additional) {
         return new DishDto(dish, additional);
     }
 
     public static DishDto of(Dish dish, Additional... additional) {
-        return new DishDto(dish, Arrays.asList(additional));
+        return new DishDto(dish, Lists.mutable.of(additional));
     }
 
 }
