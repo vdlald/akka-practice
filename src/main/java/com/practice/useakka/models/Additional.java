@@ -5,7 +5,7 @@ import lombok.*;
 @Value
 public class Additional {
 
-    long cost;
     String name;
+    long cost;
 
 }

@@ -5,7 +5,7 @@ import lombok.*;
 @Value
 public class Dish {
 
-    long cost;
     String name;
+    long cost;
 
 }

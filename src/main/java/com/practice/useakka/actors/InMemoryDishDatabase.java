@@ -9,6 +9,7 @@ import akka.actor.typed.javadsl.Receive;
 import com.practice.useakka.models.Dish;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.collections.api.factory.Maps;
+import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.map.MutableMap;
 
 import java.util.Optional;
@@ -21,6 +22,11 @@ public class InMemoryDishDatabase extends AbstractBehavior<InMemoryDishDatabase.
     @RequiredArgsConstructor
     public static class PutDish implements Command {
         public final Dish dish;
+    }
+
+    @RequiredArgsConstructor
+    public static class PutDishes implements Command {
+        public final ImmutableList<Dish> dishes;
     }
 
     @RequiredArgsConstructor
@@ -49,6 +55,7 @@ public class InMemoryDishDatabase extends AbstractBehavior<InMemoryDishDatabase.
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(PutDish.class, this::onPutDish)
+                .onMessage(PutDishes.class, this::onPutDishes)
                 .onMessage(GetDish.class, this::onGetDish)
                 .build();
     }
@@ -62,6 +69,11 @@ public class InMemoryDishDatabase extends AbstractBehavior<InMemoryDishDatabase.
     private Behavior<Command> onPutDish(PutDish command) {
         final Dish dish = command.dish;
         map.put(dish.getName(), dish);
+        return this;
+    }
+
+    private Behavior<Command> onPutDishes(PutDishes command) {
+        command.dishes.forEach(dish -> map.put(dish.getName(), dish));
         return this;
     }
 }
