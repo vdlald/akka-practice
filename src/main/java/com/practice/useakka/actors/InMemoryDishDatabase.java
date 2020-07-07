@@ -37,7 +37,7 @@ public class InMemoryDishDatabase extends AbstractBehavior<InMemoryDishDatabase.
 
     @RequiredArgsConstructor
     public static class RespondDish {
-        public final Optional<Dish> additional;
+        public final Optional<Dish> dish;
     }
 
     private final MutableMap<String, Dish> map;
