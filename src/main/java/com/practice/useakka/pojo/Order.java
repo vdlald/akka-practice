@@ -9,8 +9,6 @@ import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.partition.list.PartitionMutableList;
 
-import java.util.Optional;
-
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Order {
@@ -56,11 +54,9 @@ public class Order {
             final long reduceDiscount1 = partition.getSelected()
                     .collectLong(Discount::getValue)
                     .reduceIfEmpty(Long::sum, 0L);
-
             final long reduceDiscount2 = partition.getRejected()
                     .collectLong(discount -> (long) ((double) cost * ((double) discount.getValue() / 100L)))
                     .reduceIfEmpty(Long::sum, 0L);
-
             final long discount = reduceDiscount1 + reduceDiscount2;
 
             return new Order(cost - discount, dishes.toImmutable(), discounts.toImmutable());
