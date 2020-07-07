@@ -23,6 +23,8 @@ public class TestApp {
 
     @ClassRule
     public static final TestKitJunitResource testKit = new TestKitJunitResource();
+
+    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger("Test");
 
     private static ActorRef<InMemoryDishDatabase.Command> inMemoryDishDatabaseSystem;
@@ -32,8 +34,6 @@ public class TestApp {
 
     @BeforeAll
     static void setUpData() {
-//        inMemoryDishDatabaseSystem = RootModule.inMemoryDishDatabaseSystem();
-//        inMemoryAdditionalDatabaseSystem = RootModule.inMemoryAdditionalDatabaseSystem();
         inMemoryDishDatabaseSystem = testKit.spawn(InMemoryDishDatabase.create());
         inMemoryAdditionalDatabaseSystem = testKit.spawn(InMemoryAdditionalDatabase.create());
 
