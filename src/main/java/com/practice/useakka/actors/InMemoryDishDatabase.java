@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public class InMemoryDishDatabase extends AbstractBehavior<InMemoryDishDatabase.Command> {
 
-    interface Command {
+    public interface Command {
     }
 
     @RequiredArgsConstructor

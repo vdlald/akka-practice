@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public class InMemoryAdditionalDatabase extends AbstractBehavior<InMemoryAdditionalDatabase.Command> {
 
-    interface Command {
+    public interface Command {
     }
 
     @RequiredArgsConstructor
