@@ -6,9 +6,4 @@ import com.google.inject.Provides;
 
 public class RootModule extends AbstractModule {
 
-    @Provides
-    public static ActorSystem<HelloWorld.Command> helloWorldSystem() {
-        return ActorSystem.create(HelloWorld.create(), "MySystem");
-    }
-
 }
