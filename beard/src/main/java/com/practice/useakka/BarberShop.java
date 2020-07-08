@@ -22,30 +22,27 @@ public class BarberShop extends AbstractBehavior<BarberShop.Command> {
     private final ActorRef<Barber.Command> barber;
     private final ActorRef<WaitingRoom.Command> waitingRoom;
 
-    public static Behavior<BarberShop.Command> create(
-            ActorRef<Manager.Command> manager,
-            ActorRef<Barber.Command> barber,
-            ActorRef<WaitingRoom.Command> waitingRoom
-    ) {
-        return Behaviors.setup(context -> new BarberShop(context, manager, barber, waitingRoom));
+    public static Behavior<BarberShop.Command> create(int waitingRoomSize) {
+        return Behaviors.setup(context -> new BarberShop(context, waitingRoomSize));
     }
 
-    public BarberShop(
-            ActorContext<Command> context,
-            ActorRef<Manager.Command> manager,
-            ActorRef<Barber.Command> barber,
-            ActorRef<WaitingRoom.Command> waitingRoom
-    ) {
+    public BarberShop(ActorContext<Command> context, int waitingRoomSize) {
         super(context);
-        this.manager = manager;
-        this.barber = barber;
-        this.waitingRoom = waitingRoom;
+        this.manager = context.spawn(Manager.create(), "Manager");
+        this.barber = context.spawn(Barber.create(), "Barber");
+        this.waitingRoom = context.spawn(WaitingRoom.create(waitingRoomSize), "WaitingRoom");
     }
 
     @Override
     public Receive<BarberShop.Command> createReceive() {
         return newReceiveBuilder()
+                .onMessage(ReceiveClient.class, this::onReceiveClient)
                 .build();
+    }
+
+    private Behavior<Command> onReceiveClient(ReceiveClient m) {
+        manager.tell(new Manager.ServeClient(m.client));
+        return this;
     }
 
 }

@@ -23,15 +23,8 @@ public class Main {
                             .newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
                     final ThreadLocalRandom random = ThreadLocalRandom.current();
 
-                    final ActorRef<Manager.Command> manager = context.spawn(Manager.create(), "Manager");
-
-                    final ActorRef<Barber.Command> barber = context.spawn(Barber.create(), "Barber");
-
-                    final ActorRef<WaitingRoom.Command> waitingRoom = context
-                            .spawn(WaitingRoom.create(waitingRoomSize), "WaitingRoom");
-
                     final ActorRef<BarberShop.Command> barberShop = context
-                            .spawn(BarberShop.create(manager, barber, waitingRoom), "BarberShop");
+                            .spawn(BarberShop.create(waitingRoomSize), "BarberShop");
 
                     final IntSupplier clientNumberGenerator = createIntGenerator();
                     executorService.scheduleAtFixedRate(() -> {

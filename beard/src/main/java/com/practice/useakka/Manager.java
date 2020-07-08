@@ -5,10 +5,16 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import lombok.RequiredArgsConstructor;
 
 public class Manager extends AbstractBehavior<Manager.Command> {
 
     public interface Command {
+    }
+
+    @RequiredArgsConstructor
+    public static class ServeClient implements Command {
+        public final Client client;
     }
 
     public static Behavior<Manager.Command> create() {
