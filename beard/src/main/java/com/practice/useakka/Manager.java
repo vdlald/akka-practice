@@ -1,5 +1,6 @@
 package com.practice.useakka;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -17,17 +18,32 @@ public class Manager extends AbstractBehavior<Manager.Command> {
         public final Client client;
     }
 
-    public static Behavior<Manager.Command> create() {
-        return Behaviors.setup(Manager::new);
+    private final ActorRef<Barber.Command> barber;
+    private final ActorRef<WaitingRoom.Command> waitingRoom;
+
+    public static Behavior<Manager.Command> create(
+            ActorRef<Barber.Command> barber, ActorRef<WaitingRoom.Command> waitingRoom
+    ) {
+        return Behaviors.setup(context -> new Manager(context, barber, waitingRoom));
     }
 
-    public Manager(ActorContext<Manager.Command> context) {
+    public Manager(
+            ActorContext<Command> context, ActorRef<Barber.Command> barber, ActorRef<WaitingRoom.Command> waitingRoom
+    ) {
         super(context);
+        this.barber = barber;
+        this.waitingRoom = waitingRoom;
     }
 
     @Override
     public Receive<Manager.Command> createReceive() {
         return newReceiveBuilder()
+                .onMessage(ServeClient.class, this::onServeClient)
                 .build();
+    }
+
+    private Behavior<Command> onServeClient(ServeClient m) {
+        waitingRoom.tell(new WaitingRoom.AddClient(m.client));
+        return this;
     }
 }

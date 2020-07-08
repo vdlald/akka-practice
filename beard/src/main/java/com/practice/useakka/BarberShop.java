@@ -28,9 +28,9 @@ public class BarberShop extends AbstractBehavior<BarberShop.Command> {
 
     public BarberShop(ActorContext<Command> context, int waitingRoomSize) {
         super(context);
-        this.manager = context.spawn(Manager.create(), "Manager");
         this.barber = context.spawn(Barber.create(), "Barber");
         this.waitingRoom = context.spawn(WaitingRoom.create(waitingRoomSize), "WaitingRoom");
+        this.manager = context.spawn(Manager.create(barber, waitingRoom), "Manager");
     }
 
     @Override
