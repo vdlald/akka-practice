@@ -1,4 +1,4 @@
-package com.practice.useakka;
+package com.practice.useakka.barbershop;
 
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -6,7 +6,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
-public class Barber extends AbstractBehavior<Barber.Command> {
+class Barber extends AbstractBehavior<Barber.Command> {
 
     public interface Command {
     }

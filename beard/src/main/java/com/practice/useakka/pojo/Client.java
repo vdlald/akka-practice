@@ -1,4 +1,4 @@
-package com.practice.useakka;
+package com.practice.useakka.pojo;
 
 import lombok.Value;
 

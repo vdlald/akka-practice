@@ -1,9 +1,11 @@
 package com.practice.useakka;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.Behaviors;
+import com.practice.useakka.barbershop.Barbershop;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,6 +22,8 @@ public class Main {
                     final ScheduledExecutorService executorService = Executors
                             .newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
                     final ThreadLocalRandom random = ThreadLocalRandom.current();
+
+                    final ActorRef<Barbershop.Command> barbershop = context.spawn(Barbershop.create(), "Barbershop");
 
                     return Behaviors.receive(Void.class)
                             .onSignal(Terminated.class, sig -> Behaviors.stopped())
