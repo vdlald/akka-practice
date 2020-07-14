@@ -13,7 +13,7 @@ import java.util.ArrayDeque;
 import java.util.Optional;
 import java.util.Queue;
 
-class WaitingRoom extends AbstractBehavior<WaitingRoom.Command> {
+class WaitingRoom {
 
     public interface Command {
     }
@@ -36,37 +36,36 @@ class WaitingRoom extends AbstractBehavior<WaitingRoom.Command> {
         public final Optional<Client> client;
     }
 
-    private final Queue<Client> clients;
+    private final ActorContext<Command> context;
 
-    public static Behavior<Command> create() {
-        return Behaviors.setup(WaitingRoom::new);
+    public static Behavior<Command> create(Queue<Client> clients) {
+        return Behaviors.setup(context -> new WaitingRoom(context).waitingRoom(clients));
     }
+
 
     public WaitingRoom(ActorContext<Command> context) {
-        super(context);
-        clients = new ArrayDeque<>();
+        this.context = context;
     }
 
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
-                .onMessage(AddClient.class, this::onAddClient)
-                .onMessage(GetClient.class, this::onGetClient)
+    private Behavior<Command> waitingRoom(Queue<Client> clients) {
+        return Behaviors.receive(Command.class)
+                .onMessage(AddClient.class, command -> onAddClient(command, clients))
+                .onMessage(GetClient.class, command -> onGetClient(command, clients))
                 .build();
     }
 
-    private Behavior<Command> onGetClient(GetClient m) {
+    private Behavior<Command> onGetClient(GetClient m, Queue<Client> clients) {
         if (clients.isEmpty()) {
-            getContext().getLog().info("Клиентов нет!");
+            context.getLog().info("Клиентов нет!");
         } else {
             m.replyTo.tell(new ClientResponse(Optional.of(clients.remove())));
         }
-        return this;
+        return Behaviors.same();
     }
 
-    private Behavior<Command> onAddClient(AddClient m) {
+    private Behavior<Command> onAddClient(AddClient m, Queue<Client> clients) {
         clients.add(m.client);
-        return this;
+        return Behaviors.same();
     }
 
 }

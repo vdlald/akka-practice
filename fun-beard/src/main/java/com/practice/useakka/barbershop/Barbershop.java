@@ -9,9 +9,10 @@ import akka.actor.typed.javadsl.Receive;
 import com.practice.useakka.pojo.Client;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayDeque;
 import java.util.UUID;
 
-public class Barbershop extends AbstractBehavior<Barbershop.Command> {
+public class Barbershop {
 
     public interface Command {
     }
@@ -28,31 +29,31 @@ public class Barbershop extends AbstractBehavior<Barbershop.Command> {
         INSTANCE
     }
 
+    private final ActorContext<Barbershop.Command> context;
     private final ActorRef<Barber.Command> barber;
     private final ActorRef<WaitingRoom.Command> waitingRoom;
 
     public static Behavior<Command> create() {
-        return Behaviors.setup(Barbershop::new);
+        return Behaviors.setup(context -> new Barbershop(context).barbershop());
     }
 
     public Barbershop(ActorContext<Command> context) {
-        super(context);
-        this.waitingRoom = context.spawn(WaitingRoom.create(), "WaitingRoom-" + UUID.randomUUID());
+        this.context = context;
+        this.waitingRoom = context.spawn(WaitingRoom.create(new ArrayDeque<>()), "WaitingRoom-" + UUID.randomUUID());
         this.barber = context.spawn(Barber.create(waitingRoom), "Barber-" + UUID.randomUUID());
     }
 
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
+    private Behavior<Command> barbershop() {
+        return Behaviors.receive(Command.class)
                 .onMessage(ReceiveClient.class, this::onReceiveClient)
                 .build();
     }
 
     private Behavior<Command> onReceiveClient(ReceiveClient m) {
-        getContext().getLog().info("Пришел клиент {}", m.client);
+        context.getLog().info("Пришел клиент {}", m.client);
         waitingRoom.tell(new WaitingRoom.AddClient(m.client));
         barber.tell(new Barber.BarbershopEventWrapper(ReceiveClientEvent.INSTANCE));
-        return this;
+        return Behaviors.same();
     }
 
 }

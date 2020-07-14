@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-class Barber extends AbstractBehavior<Barber.Command> {
+class Barber {
 
     private final ActorRef<WaitingRoom.Response> waitingRoomResponseAdapter;
 
@@ -33,19 +33,20 @@ class Barber extends AbstractBehavior<Barber.Command> {
     private final ActorRef<WaitingRoom.Command> waitingRoom;
 
     public static Behavior<Command> create(ActorRef<WaitingRoom.Command> waitingRoom) {
-        return Behaviors.setup(context -> new Barber(context, waitingRoom));
+        return Behaviors.setup(context -> new Barber(context, waitingRoom).barber());
     }
 
+    private final ActorContext<Barber.Command> context;
+
     public Barber(ActorContext<Command> context, ActorRef<WaitingRoom.Command> waitingRoom) {
-        super(context);
+        this.context = context;
         this.waitingRoom = waitingRoom;
         barbershopEventAdapter = context.messageAdapter(Barbershop.Event.class, BarbershopEventWrapper::new);
         waitingRoomResponseAdapter = context.messageAdapter(WaitingRoom.Response.class, WaitingRoomResponseWrapper::new);
     }
 
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
+    private Behavior<Command> barber() {
+        return Behaviors.receive(Command.class)
                 .onMessage(BarbershopEventWrapper.class, this::onBarbershopEvent)
                 .onMessage(WaitingRoomResponseWrapper.class, this::onWaitingRoomResponse)
                 .build();
@@ -56,18 +57,18 @@ class Barber extends AbstractBehavior<Barber.Command> {
             final WaitingRoom.ClientResponse response = (WaitingRoom.ClientResponse) m.response;
             response.client.ifPresent(this::serveClient);
         }
-        return this;
+        return Behaviors.same();
     }
 
     private Behavior<Command> onBarbershopEvent(BarbershopEventWrapper m) {
         if (m.event instanceof Barbershop.ReceiveClientEvent) {
             waitingRoom.tell(new WaitingRoom.GetClient(waitingRoomResponseAdapter));
         }
-        return this;
+        return Behaviors.same();
     }
 
     private void serveClient(Client client) {
-        final Logger logger = getContext().getLog();
+        final Logger logger = context.getLog();
         logger.info("Барбер стрижет клиента {}", client);
         try {
             Thread.sleep(ThreadLocalRandom.current().nextInt(300, 500));
@@ -75,6 +76,7 @@ class Barber extends AbstractBehavior<Barber.Command> {
             e.printStackTrace();
         }
         logger.info("Барбер подстриг клиента {}", client);
+        waitingRoom.tell(new WaitingRoom.GetClient(waitingRoomResponseAdapter));
     }
 
 }
