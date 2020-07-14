@@ -8,10 +8,12 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lombok.RequiredArgsConstructor;
 
-public class Writer extends AbstractBehavior<Writer.Command> {
+public class Writer {
 
     public interface Command {
     }
+
+    private final ActorContext<Writer.Command> context;
 
     @RequiredArgsConstructor
     public static class WriteMessage implements Command {
@@ -20,22 +22,21 @@ public class Writer extends AbstractBehavior<Writer.Command> {
     }
 
     public static Behavior<Command> create() {
-        return Behaviors.setup(Writer::new);
+        return Behaviors.setup(context -> new Writer(context).writer());
     }
 
     public Writer(ActorContext<Command> context) {
-        super(context);
+        this.context = context;
     }
 
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
+    public Behavior<Command> writer() {
+        return Behaviors.receive(Command.class)
                 .onMessage(WriteMessage.class, this::onWriteMessage)
                 .build();
     }
 
     private Behavior<Command> onWriteMessage(WriteMessage m) {
         m.writeTo.tell(new Mail.PushMessage(m.message));
-        return this;
+        return Behaviors.same();
     }
 }

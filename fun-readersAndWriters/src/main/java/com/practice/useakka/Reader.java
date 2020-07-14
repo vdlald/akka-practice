@@ -8,7 +8,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lombok.RequiredArgsConstructor;
 
-public class Reader extends AbstractBehavior<Reader.Command> {
+public class Reader {
 
     public interface Command {
     }
@@ -24,21 +24,21 @@ public class Reader extends AbstractBehavior<Reader.Command> {
     }
 
     public static Behavior<Command> create(String name) {
-        return Behaviors.setup(context -> new Reader(context, name));
+        return Behaviors.setup(context -> new Reader(context, name).reader());
     }
 
+    private final ActorContext<Reader.Command> context;
     private final String name;
     private final ActorRef<Mail.Response> messageAdapter;
 
     public Reader(ActorContext<Command> context, String name) {
-        super(context);
+        this.context = context;
         messageAdapter = context.messageAdapter(Mail.Response.class, WrappedMailCommand::new);
         this.name = name;
     }
 
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
+    public Behavior<Command> reader() {
+        return Behaviors.receive(Command.class)
                 .onMessage(WrappedMailCommand.class, this::onWrappedMessageRespond)
                 .onMessage(ReadMessage.class, this::onReadMessage)
                 .build();
@@ -46,14 +46,14 @@ public class Reader extends AbstractBehavior<Reader.Command> {
 
     private Behavior<Command> onReadMessage(ReadMessage m) {
         m.readFrom.tell(new Mail.GetMessage(messageAdapter));
-        return this;
+        return Behaviors.same();
     }
 
     private Behavior<Command> onWrappedMessageRespond(WrappedMailCommand m) {
         final Mail.MessageRespond messageRespond = m.command instanceof Mail.MessageRespond ? ((Mail.MessageRespond) m.command) : null;
         if (messageRespond != null) {
-            getContext().getLog().info("{}: {}", name, messageRespond.message);
+            context.getLog().info("{}: {}", name, messageRespond.message);
         }
-        return this;
+        return Behaviors.same();
     }
 }

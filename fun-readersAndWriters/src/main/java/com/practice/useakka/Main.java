@@ -6,6 +6,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.Behaviors;
 
+import java.util.ArrayDeque;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,7 +21,7 @@ public class Main {
                             .newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
                     final ThreadLocalRandom random = ThreadLocalRandom.current();
 
-                    final ActorRef<Mail.Command> mail = context.spawn(Mail.create(), "Mail");
+                    final ActorRef<Mail.Command> mail = context.spawn(Mail.create(new ArrayDeque<>()), "Mail");
                     context.watch(mail);
 
                     for (int i = 1; i <= 2; i++) {

@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-public class Mail extends AbstractBehavior<Mail.Command> {
+public class Mail {
 
     public interface Command {
     }
@@ -34,37 +34,36 @@ public class Mail extends AbstractBehavior<Mail.Command> {
         public final String message;
     }
 
-    private final Queue<String> messages;
+    private final ActorContext<Mail.Command> context;
 
-    public static Behavior<Command> create() {
-        return Behaviors.setup(Mail::new);
+    public static Behavior<Command> create(Queue<String> messages) {
+        return Behaviors.setup(context -> new Mail(context).mail(messages));
     }
 
     public Mail(ActorContext<Command> context) {
-        super(context);
-        messages = new ArrayDeque<>();
+        this.context = context;
     }
 
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
-                .onMessage(GetMessage.class, this::onGetMessage)
-                .onMessage(PushMessage.class, this::onPushMessage)
+
+    public Behavior<Command> mail(Queue<String> messages) {
+        return Behaviors.receive(Command.class)
+                .onMessage(GetMessage.class, command -> onGetMessage(command, messages))
+                .onMessage(PushMessage.class, command -> onPushMessage(command, messages))
                 .build();
     }
 
-    private Behavior<Command> onGetMessage(GetMessage m) {
+    private Behavior<Command> onGetMessage(GetMessage m, Queue<String> messages) {
         if (messages.isEmpty()) {
             m.replyTo.tell(new MessageRespond("No messages"));
         } else {
             m.replyTo.tell(new MessageRespond(messages.remove()));
         }
-        return this;
+        return Behaviors.same();
     }
 
-    private Behavior<Command> onPushMessage(PushMessage m) {
+    private Behavior<Command> onPushMessage(PushMessage m, Queue<String> messages) {
         messages.add(m.message);
-        return this;
+        return Behaviors.same();
     }
 
 }
