@@ -75,6 +75,7 @@ class Barber extends AbstractBehavior<Barber.Command> {
             e.printStackTrace();
         }
         logger.info("Барбер подстриг клиента {}", client);
+        waitingRoom.tell(new WaitingRoom.GetClient(waitingRoomResponseAdapter));
     }
 
 }
