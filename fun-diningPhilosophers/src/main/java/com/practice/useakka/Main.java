@@ -1,16 +1,22 @@
 package com.practice.useakka;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.Behaviors;
+import com.practice.useakka.Philosoff.*;
+import com.practice.useakka.pojo.Client;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
 
 public class Main {
+
+    private static final int waitingRoomSize = 5;
 
     public static Behavior<Void> create() {
         return Behaviors.setup(
@@ -18,6 +24,14 @@ public class Main {
                     final ScheduledExecutorService executorService = Executors
                             .newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
                     final ThreadLocalRandom random = ThreadLocalRandom.current();
+
+                    final ActorRef<vilki.Command> Vilki = context.spawn(vilki.create(), "vilki");
+
+                    final IntSupplier intGenerator = createIntGenerator();
+                    executorService.scheduleAtFixedRate(() -> {
+                        Vilki.tell(new vilki.ReceiveClient(
+                                new Client("Client" + intGenerator.getAsInt())));
+                    }, 0, random.nextInt(300, 400), TimeUnit.MILLISECONDS);
 
                     return Behaviors.receive(Void.class)
                             .onSignal(Terminated.class, sig -> Behaviors.stopped())
@@ -41,3 +55,4 @@ public class Main {
         };
     }
 }
+
