@@ -11,10 +11,12 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
-public class Barbershop extends AbstractBehavior<Barbershop.Command> {
+public class Barbershop {
 
     public interface Command {
     }
+
+    private final ActorContext<Barbershop.Command> context;
 
     @RequiredArgsConstructor
     public static class ReceiveClient implements Command {
@@ -32,27 +34,26 @@ public class Barbershop extends AbstractBehavior<Barbershop.Command> {
     private final ActorRef<WaitingRoom.Command> waitingRoom;
 
     public static Behavior<Command> create() {
-        return Behaviors.setup(Barbershop::new);
+        return Behaviors.setup(context -> new Barbershop(context).barbershop());
     }
 
     public Barbershop(ActorContext<Command> context) {
-        super(context);
+        this.context = context;
         this.waitingRoom = context.spawn(WaitingRoom.create(), "WaitingRoom-" + UUID.randomUUID());
         this.barber = context.spawn(Barber.create(waitingRoom), "Barber-" + UUID.randomUUID());
     }
 
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
+    private Behavior<Command> barbershop() {
+        return Behaviors.receive(Command.class)
                 .onMessage(ReceiveClient.class, this::onReceiveClient)
                 .build();
     }
 
     private Behavior<Command> onReceiveClient(ReceiveClient m) {
-        getContext().getLog().info("Пришел клиент {}", m.client);
+        context.getLog().info("Пришел клиент {}", m.client);
         waitingRoom.tell(new WaitingRoom.AddClient(m.client));
         barber.tell(new Barber.BarbershopEventWrapper(ReceiveClientEvent.INSTANCE));
-        return this;
+        return Behaviors.same();
     }
 
 }
