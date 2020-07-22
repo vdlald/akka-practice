@@ -28,9 +28,10 @@ public class Main {
                     final ActorRef<vilki.Command> Vilki = context.spawn(vilki.create(), "vilki");
 
                     final IntSupplier intGenerator = createIntGenerator();
+
                     executorService.scheduleAtFixedRate(() -> {
                         Vilki.tell(new vilki.ReceiveClient(
-                                new Client("Client" + intGenerator.getAsInt())));
+                                new Client("Client " + intGenerator.getAsInt()+" " + intGenerator.getAsInt())));
                     }, 0, random.nextInt(300, 400), TimeUnit.MILLISECONDS);
 
                     return Behaviors.receive(Void.class)
@@ -46,10 +47,11 @@ public class Main {
     private static IntSupplier createIntGenerator() {
         return new IntSupplier() {
             int i = 0;
-
             @Override
             public int getAsInt() {
                 i++;
+                if (i==10)
+                    i=0;
                 return i;
             }
         };

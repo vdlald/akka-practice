@@ -67,7 +67,7 @@ public class philosoff {
 
     private void serveClient(Client client) {
         final Logger logger = context.getLog();
-        logger.info("Филосов ищет вилку {}", client);
+        logger.info("Филосов берет вилку {}", client);
         try {
             Thread.sleep(ThreadLocalRandom.current().nextInt(300, 500));
         } catch (InterruptedException e) {
